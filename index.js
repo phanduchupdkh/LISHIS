@@ -10,6 +10,7 @@ const Axios = require('axios')
 // Connection URL
 
 const url = 'mongodb://localhost:27017';
+let databaseName = 'testLIS'
 
 const client = new MongoClient(url)
 ///////////////////SERVER/////////////////////
@@ -21,7 +22,7 @@ app.use(async function (req, res) {
   // console.log(req.msg)
   await client.connect()
   console.log('🌱  Database seeder is running')
-  const db = client.db('bd0512')
+  const db = client.db('lisServer')
   // MSH|a|
   // PID||||||||||
   // OBX|||||||||||
@@ -65,7 +66,7 @@ app.use(async function (req, res) {
           sendingFacility,
           receivingApplication,
           receivingFacility,
-          dateTimeOfMessage: moment(dateTimeOfMessage, 'YYYYMMDDHHmmss').valueOf()|| 0,
+          dateTimeOfMessage:moment(dateTimeOfMessage, 'YYYYMMDDHHmmss').valueOf()|| 0,
           security,
           messageType,
           messageControlId,
@@ -141,7 +142,7 @@ app.use(async function (req, res) {
           citizenship,
           veteransMilitaryStatus,
           nationality,
-          patientDeathDateandTime,
+          patientDeathDateandTime: moment(patientDeathDateandTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
           patientDeathIndicator
         }
       }
@@ -201,15 +202,15 @@ app.use(async function (req, res) {
           fillerOrderNumber,
           universalServiceIdentifier,
           priority,
-          requestedDateTime: moment(requestedDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
-          observationDateTime: moment(observationDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
-          observationEndDateTime: moment(observationEndDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
+          requestedDateTime:moment(requestedDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
+          observationDateTime:moment(observationDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
+          observationEndDateTime:moment(observationEndDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
           collectionVolume,
           collectorIdentifier,
           specimenActionCode,
           dangerCode,
           relevantClinicalInformation,
-          specimenReceivedDateTime: moment(specimenReceivedDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
+          specimenReceivedDateTime:moment(specimenReceivedDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
           specimenSource,
           orderingProvider,
           orderCallbackPhoneNumber,
@@ -217,7 +218,7 @@ app.use(async function (req, res) {
           placerField2,
           fillerField1,
           fillerField2,
-          resultsRptStatusChngDateTime: moment(resultsRptStatusChngDateTime, 'YYYYMMDDHHmmss').valueOf() || 0,
+          resultsRptStatusChngDateTime:moment(resultsRptStatusChngDateTime, 'YYYYMMDDHHmmss').valueOf()|| 0,
           chargeToPractice,
           diagnosticServSectID,
           resultStatus,
@@ -280,7 +281,7 @@ app.use(async function (req, res) {
           observResultStatus,
           dataLastObsNormalValues,
           userDefinedAccessChecks,
-          dateTimeOfTheObservation: moment(dateTimeOfTheObservation, 'YYYYMMDDHHmmss').valueOf() || 0,
+          dateTimeOfTheObservation:moment(dateTimeOfTheObservation, 'YYYYMMDDHHmmss').valueOf()|| 0,
           producerId,
           responsibleObserver,
           observationMethod
@@ -301,8 +302,8 @@ app.use(async function (req, res) {
       }
     }
     
-    let t = await db.collection('hospitals').findOne({ messageFull: req.msg.log() })
-    // if (!t) {
+    let t = await db.collection(databaseName).findOne({ messageFull: req.msg.log() })
+    if (!t) {
       try {
         let a = await Axios.post(urlCl3, cli_create_test_result, {
           method: 'POST',
@@ -316,27 +317,27 @@ app.use(async function (req, res) {
         console.log(error)
       }
       
-      // await db.collection('hospitals').findOneAndUpdate(
-      //   { messageFull: req.msg.log() },
-      //   {
-      //     $set: {
-      //       messageFull: req.msg.log(),
-      //       MSH,
-      //       PID,
-      //       OBR,
-      //       OBX,
-      //       isActive: true,
-      //       createdAt: +new Date(),
-      //       createdBy: {
-      //         _id: '0',
-      //         username: 'admin',
-      //         fullName: 'Administrator'
-      //       }
-      //     }
-      //   },
-      //   { upsert: true }
-      // )
-    // }
+      await db.collection(databaseName).findOneAndUpdate(
+        { messageFull: req.msg.log() },
+        {
+          $set: {
+            messageFull: req.msg.log(),
+            MSH,
+            PID,
+            OBR,
+            OBX,
+            isActive: true,
+            createdAt: +new Date(),
+            createdBy: {
+              _id: '0',
+              username: 'admin',
+              fullName: 'Administrator'
+            }
+          }
+        },
+        { upsert: true }
+      )
+    }
 
     var msa = res.ack.getSegment('MSA');
     msa.setField(1, 'AA')
